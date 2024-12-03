@@ -9,7 +9,6 @@ const database = require("./models/db");
 const axios = require('axios');
 
 const { Op } = require("sequelize");
-const { engine } = require("express-handlebars");
 const path = require("path");
 const methodOverride = require('method-override');
 const flash = require('connect-flash');
@@ -42,31 +41,7 @@ ParticipantModel.belongsTo(UserModel, {
     as: 'user',
 });
 
-// #region Configuração Handlebars
-app.engine("handlebars", engine({
-    extname: '.hbs',
-    defaultLayout: "main",
-    helpers: {
-        isEquals: function (a, b) {
-            return a === b;
-        },
-        Equals: function (a, b) {
-            return a != b;
-        },
-        reverseDate: function (date) {
-            const parts = date.split('-');
-            return `${parts[2]}/${parts[1]}/${parts[0]}`;
-        },
-        removeSeconds: function (time) {
-            return time.slice(0, 5);
-        },
-        json: function (context) {
-            return JSON.stringify(context);
-        }
-    }
-}));
 
-app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
 // #endregion
 
@@ -135,28 +110,6 @@ function verificarToken(req, res, next) {
 // #region Rotas Principais//
 
 // Rota POST para o cadastro de usuários
-// Middleware para verificar o token JWT
-function verificarToken(req, res, next) {
-    const token = req.headers['authorization']?.split(' ')[1];  // Pega o token do cabeçalho Authorization
-
-    console.log('Cabeçalho Authorization recebido:', req.headers['authorization']);  // Para depurar
-
-    if (!token) {
-        console.log("Token não fornecido na requisição.");
-        return res.status(401).send({ message: 'Token não fornecido.' });
-    }
-
-    jwt.verify(token, SECRET_KEY, (err, decoded) => {
-        if (err) {
-            console.log("Token inválido ou expirado:", err);
-            return res.status(401).send({ message: 'Token inválido ou expirado.' });
-        }
-
-        req.userId = decoded.id; // Adiciona o ID do usuário à requisição
-        next(); // Passa o controle para a próxima função ou rota
-    });
-}
-
 // Rota POST para o cadastro de usuários
 app.post('/cadastro', async (req, res) => {
     const { nome, sobrenome, telefone, email, password } = req.body;
