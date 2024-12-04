@@ -462,7 +462,7 @@ app.get('/api/eventos2', verificarToken, (req, res) => {
 // #region Rotas GET
 
 // Rota para buscar eventos "em análise"
-app.get('/api/eventos/em-analise', verificarToken, async (req, res) => {
+app.get('/api/eventos/em-analise', async (req, res) => {
     try {
         const dataAtual = new Date();
         const data = dataAtual.toLocaleDateString('en-CA');
