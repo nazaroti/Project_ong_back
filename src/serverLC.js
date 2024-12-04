@@ -73,10 +73,14 @@ database.sequelize.authenticate().then(function () {
 app.use(express.json());
 
 
-const port = process.env.PORT || 30079;
+const port = process.env.PORT;
 const SECRET_KEY = 'sua_chave_secreta';
 
-app.use(cors());
+app.use(cors({
+    origin: 'https://project-ong-back.onrender.com', 
+    methods: 'GET,POST,PUT,DELETE',
+    allowedHeaders: 'Content-Type,Authorization'
+}));
 app.use(bodyParser.json());
 
 // Função para gerar o token JWT
