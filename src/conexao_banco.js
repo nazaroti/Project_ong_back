@@ -1,23 +1,23 @@
-// conexao_banco.js
-const mysql = require('mysql2');
+const { Client } = require('pg');
 
+// Link de conexão com o banco de dados PostgreSQL
+const connectionUrl = 'postgresql://project_ong_banco_user:GTYrLBPK6LIvvXH66Y8FRjumnHkAcsCI@dpg-ct76dibtq21c73bjo40g-a.oregon-postgres.render.com/project_ong_banco';
 
-// Configuração da conexão com o banco de dados
-const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '1308',
-    database: 'bdong'
+// Configuração do cliente com SSL habilitado
+const client = new Client({
+    connectionString: connectionUrl,
+    ssl: {
+        rejectUnauthorized: false, // Aceita certificados autoassinados (não recomendado em produção)
+    },
 });
 
-// Verifica se a conexão com o banco foi bem-sucedida
-connection.connect((err) => {
+// Conectando ao banco de dados
+client.connect((err) => {
     if (err) {
-        console.error('Erro ao conectar ao banco de dados: ' + err.stack);
+        console.error('Erro ao conectar ao banco de dados:', err.stack);
         return;
     }
     console.log('Conexão bem-sucedida com o banco de dados');
 });
 
-module.exports = connection;
-
+module.exports = client;
