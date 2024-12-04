@@ -14,7 +14,7 @@ const client = new Client({
 // Conectando ao banco de dados
 client.connect((err) => {
     if (err) {
-        console.error('Erro ao conectar ao banco de dados:', err.stack);
+        console.error('Connection: Erro ao conectar ao banco de dados:', err.stack);
         return;
     }
     console.log('Conexão bem-sucedida com o banco de dados');
