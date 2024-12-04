@@ -110,8 +110,14 @@ function verificarToken(req, res, next) {
     });
 }
 
-app.get('/', (req, res) => {
-    res.send('Servidor está ativo!');
+app.get('/', async (req, res) => {
+    try {
+      const result = await client.query('SELECT * FROM evento');
+      console.log(result);
+    } catch (error) {
+      console.error('Erro ao buscar eventos:', error.message);
+      res.status(500).json({ error: 'Erro ao buscar eventos' });
+    }
   });
   
 
