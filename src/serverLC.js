@@ -110,6 +110,10 @@ function verificarToken(req, res, next) {
     });
 }
 
+app.get('/', (req, res) => {
+    res.send('Servidor está ativo!');
+  });
+  
 
 // #region Rotas Principais//
 
