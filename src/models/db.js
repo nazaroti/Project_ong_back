@@ -26,6 +26,6 @@ sequelize.authenticate()
   });
 
 module.exports = {
-  Sequelize,
-  sequelize,
+    Sequelize: Sequelize,
+    sequelize: sequelize
 };
