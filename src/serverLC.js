@@ -73,7 +73,7 @@ database.sequelize.authenticate().then(function () {
 app.use(express.json());
 
 
-const port = 30079;
+const port = process.env.PORT || 30079;
 const SECRET_KEY = 'sua_chave_secreta';
 
 app.use(cors());
