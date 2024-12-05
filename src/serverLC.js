@@ -113,8 +113,8 @@ function verificarToken(req, res, next) {
 app.get('/teste', async (req, res) => {
     try {
         const result = await connection.query('SELECT * FROM evento');
-        console.log(result);
-        res.json(result); // Envia o resultado como resposta
+        console.log(result.rows); // Exibe somente os dados
+        res.json(result.rows); // Envia somente as linhas de dados como resposta
     } catch (error) {
         console.error('Erro ao buscar eventos:', error.message);
         res.status(500).json({ error: 'Erro ao buscar eventos' });
@@ -123,7 +123,6 @@ app.get('/teste', async (req, res) => {
 
 
 
-  
 
 // #region Rotas Principais//
 
