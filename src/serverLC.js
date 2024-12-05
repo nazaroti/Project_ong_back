@@ -181,19 +181,21 @@ app.post('/cadastro', async (req, res) => {
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
+    // Verificação de campos obrigatórios
     if (!email || !password) {
         return res.status(400).send({ message: 'Email e senha são obrigatórios.' });
     }
 
-    const query = 'SELECT * FROM usuarios WHERE Email = ?';
+    // Consulta ao banco de dados
+    const query = 'SELECT * FROM usuarios WHERE email = $1'; // $1 é o placeholder do PostgreSQL
     pool.query(query, [email], async (err, results) => {
         if (err) {
             console.error('Erro ao verificar login no banco de dados:', err);
             return res.status(500).send({ message: 'Erro no servidor' });
         }
 
-        if (results.length > 0) {
-            const user = results[0];
+        if (results.rows.length > 0) { // 'rows' contém os resultados no PostgreSQL
+            const user = results.rows[0];
 
             if (!user.senha) {
                 console.error('Senha não encontrada no banco de dados para o usuário:', email);
@@ -201,10 +203,11 @@ app.post('/login', (req, res) => {
             }
 
             try {
+                // Comparação da senha
                 const match = await bcrypt.compare(password, user.senha);
 
                 if (match) {
-                    // Gera o token JWT com o ID do usuário
+                    // Geração do token JWT
                     const token = gerarToken(user.id);
                     return res.status(200).send({ message: 'Login bem-sucedido', token });
                 } else {
