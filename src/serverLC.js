@@ -253,12 +253,32 @@ app.get('/perfil', verificarToken, (req, res) => {
 });
 
 // Rota PUT para atualizar o perfil do usuário autenticado
-app.put('/perfil', verificarToken, (req, res) => {
+app.put('/editar-perfil', verificarToken, (req, res) => {
     const userId = req.userId;
     const { nome, sobrenome, telefone, email } = req.body;
-    const updateQuery = 'UPDATE usuarios SET Nome = ?, Sobrenome = ?, Telefone = ?, Email = ? WHERE id = ?';
-    pool.query(updateQuery, [nome, sobrenome, telefone, email, userId], (err) => {
-        if (err) return res.status(500).send({ message: 'Erro ao atualizar o perfil do usuário.' });
+
+    // Validação dos dados recebidos
+    if (!nome || !sobrenome || !telefone || !email) {
+        return res.status(400).send({ message: 'Todos os campos são obrigatórios.' });
+    }
+
+    // Consulta para atualizar os dados do usuário
+    const updateQuery = `
+        UPDATE usuarios
+        SET nome = $1, sobrenome = $2, telefone = $3, email = $4
+        WHERE id = $5
+    `;
+
+    pool.query(updateQuery, [nome, sobrenome, telefone, email, userId], (err, results) => {
+        if (err) {
+            console.error('Erro ao atualizar o perfil do usuário:', err);
+            return res.status(500).send({ message: 'Erro ao atualizar o perfil do usuário.' });
+        }
+
+        if (results.rowCount === 0) {
+            return res.status(404).send({ message: 'Usuário não encontrado.' });
+        }
+
         res.status(200).send({ message: 'Perfil atualizado com sucesso.' });
     });
 });
@@ -454,33 +474,6 @@ app.delete('/api/eventos/:eventId', verificarToken, (req, res) => {
     });
 });
 
-// Rota GET para retornar todos os eventos de um usuário
-app.get('/api/eventos2', verificarToken, (req, res) => {
-    const userId = req.query.userId;
-    console.log("ID do usuário extraído do token:", userId);  // Log para verificar o userId
-
-    if (!userId) {
-        return res.status(400).send({ message: 'Parâmetro userId não fornecido.' });
-    }
-
-    // Consulta SQL para buscar todos os eventos do usuário
-    const query = 'SELECT * FROM evento WHERE ID_Usuario = ?';
-    pool.query(query, [userId], (err, results) => {
-        if (err) {
-            console.error('Erro ao buscar eventos:', err);
-            return res.status(500).send({ message: 'Erro ao buscar eventos.' });
-        }
-
-        if (results.length === 0) {
-            return res.status(404).send({ message: 'Nenhum evento encontrado para o usuário.' });
-        }
-
-        console.log('Eventos encontrados:', results);  // Log dos eventos retornados
-
-        // Retorna os eventos encontrados
-        res.status(200).json(results);
-    });
-});
 
 // #endregion //
 
