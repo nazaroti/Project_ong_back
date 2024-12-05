@@ -152,40 +152,33 @@ app.post('/cadastro', async (req, res) => {
     }
 
     try {
-        // Verifica se o e-mail já está cadastrado
         const checkEmailQuery = 'SELECT * FROM usuarios WHERE Email = ?';
-        const results = await new Promise((resolve, reject) => {
-            connection.query(checkEmailQuery, [email], (err, results) => {
-                if (err) reject(err);
-                resolve(results);
-            });
-        });
+        connection.query(checkEmailQuery, [email], async (err, results) => {
+            if (err) {
+                console.error('Erro ao verificar e-mail: ', err);
+                return res.status(500).send({ message: 'Erro ao verificar e-mail.' });
+            }
 
-        if (results.length > 0) {
-            return res.status(409).send({ message: 'E-mail já cadastrado' });
-        }
+            if (results.length > 0) {
+                return res.status(409).send({ message: 'E-mail já cadastrado' });
+            }
 
-        // Criptografa a senha
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Insere o novo usuário no banco de dados
-        const insertQuery = `INSERT INTO usuarios (Nome, Sobrenome, Telefone, Email, Senha) 
-                             VALUES (?, ?, ?, ?, ?)`;
-
-        await new Promise((resolve, reject) => {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const insertQuery = `INSERT INTO usuarios (Nome, Sobrenome, Telefone, Email, Senha) 
+                                 VALUES (?, ?, ?, ?, ?)`;
             connection.query(insertQuery, [nome, sobrenome, telefone, email, hashedPassword], (err, results) => {
-                if (err) reject(err);
-                resolve(results);
+                if (err) {
+                    console.error('Erro ao cadastrar usuário: ', err);
+                    return res.status(500).send({ message: 'Erro ao cadastrar usuário' });
+                }
+                res.status(200).send({ message: 'Usuário cadastrado com sucesso!' });
             });
         });
-
-        res.status(200).send({ message: 'Usuário cadastrado com sucesso!' });
     } catch (err) {
-        console.error('Erro ao processar a requisição:', err);
-        res.status(500).send({ message: 'Erro ao processar a requisição.' });
+        console.error('Erro ao processar a senha:', err);
+        return res.status(500).send({ message: 'Erro ao processar a senha.' });
     }
 });
-
 
 // Rota POST para login de usuário
 app.post('/login', (req, res) => {
