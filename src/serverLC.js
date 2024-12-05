@@ -112,14 +112,14 @@ function verificarToken(req, res, next) {
 
 app.get('/teste', async (req, res) => {
     try {
-        const result = await connection.query('SELECT nome FROM evento'); // Seleciona apenas a coluna 'nome'
-        res.json(result.rows); // Envia apenas os nomes como resposta
+        const result = await connection.query('SELECT * FROM evento'); // Busca todos os campos
+        const nomes = result.rows.map(evento => ({ nome: evento.nome })); // Filtra apenas o nome
+        res.json(nomes); // Envia somente os nomes como resposta
     } catch (error) {
         console.error('Erro ao buscar eventos:', error.message);
         res.status(500).json({ error: 'Erro ao buscar eventos' });
     }
 });
-
 
 
 
