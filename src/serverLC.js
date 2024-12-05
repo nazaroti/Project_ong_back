@@ -110,7 +110,7 @@ function verificarToken(req, res, next) {
     });
 }
 
-app.get('/', async (req, res) => {
+app.get('/teste', async (req, res) => {
     try {
       const result = await connection.query('SELECT * FROM evento');
       console.log(result);
