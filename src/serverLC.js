@@ -375,7 +375,7 @@ app.get('/api/eventos2', (req, res) => {
     });
 });
 
-app.post('/api/eventos/:eventoID/inscrever', (req, res) => {
+app.post('/api/eventos/:eventoID/inscrever', async (req, res) => {
     const eventoID = req.params.eventoID;
     const { ID_Usuario } = req.body;
 
@@ -383,27 +383,23 @@ app.post('/api/eventos/:eventoID/inscrever', (req, res) => {
         return res.status(400).json({ error: 'Dados insuficientes para inscrição.' });
     }
 
-    // Verificar número de vagas disponíveis
-    const vagasQuery = `
-        SELECT 
-            e.Num_Vagas - COUNT(ie.ID_Inscricao) AS Vagas_Disponiveis
-        FROM evento e
-        LEFT JOIN inscrever_evento ie ON e.ID_Evento = ie.ID_Evento
-        WHERE e.ID_Evento = ?
-        GROUP BY e.Num_Vagas
-    `;
+    try {
+        // Verificar número de vagas disponíveis
+        const vagasQuery = `
+            SELECT 
+                e.Num_Vagas - COUNT(ie.ID_Inscricao) AS Vagas_Disponiveis
+            FROM evento e
+            LEFT JOIN inscrever_evento ie ON e.ID_Evento = ie.ID_Evento
+            WHERE e.ID_Evento = $1
+            GROUP BY e.Num_Vagas
+        `;
+        const resultVagas = await pool.query(vagasQuery, [eventoID]);
 
-    pool.query(vagasQuery, [eventoID], (err, results) => {
-        if (err) {
-            console.error("Erro ao verificar vagas disponíveis:", err);
-            return res.status(500).json({ error: 'Erro no servidor.' });
-        }
-
-        if (results.length === 0) {
+        if (resultVagas.rows.length === 0) {
             return res.status(404).json({ error: 'Evento não encontrado.' });
         }
 
-        const vagasDisponiveis = results[0].Vagas_Disponiveis;
+        const vagasDisponiveis = resultVagas.rows[0].vagas_disponiveis;
 
         if (vagasDisponiveis <= 0) {
             return res.status(400).json({ error: 'Não há vagas disponíveis para este evento.' });
@@ -412,34 +408,27 @@ app.post('/api/eventos/:eventoID/inscrever', (req, res) => {
         // Verificar duplicação de inscrições
         const checkQuery = `
             SELECT * FROM inscrever_evento 
-            WHERE ID_Evento = ? AND ID_Usuario = ?
+            WHERE ID_Evento = $1 AND ID_Usuario = $2
         `;
+        const resultCheck = await pool.query(checkQuery, [eventoID, ID_Usuario]);
 
-        pool.query(checkQuery, [eventoID, ID_Usuario], (err, results) => {
-            if (err) {
-                console.error("Erro ao verificar duplicação de inscrição:", err);
-                return res.status(500).json({ error: 'Erro no servidor.' });
-            }
+        if (resultCheck.rows.length > 0) {
+            return res.status(400).json({ error: 'Usuário já inscrito neste evento.' });
+        }
 
-            if (results.length > 0) {
-                return res.status(400).json({ error: 'Usuário já inscrito neste evento.' });
-            }
+        // Inserir inscrição
+        const insertQuery = `
+            INSERT INTO inscrever_evento (ID_Evento, ID_Usuario)
+            VALUES ($1, $2)
+        `;
+        await pool.query(insertQuery, [eventoID, ID_Usuario]);
 
-            // Inserir inscrição
-            const insertQuery = `
-                INSERT INTO inscrever_evento (ID_Evento, ID_Usuario)
-                VALUES (?, ?)
-            `;
+        res.json({ success: true, message: 'Inscrição realizada com sucesso!' });
 
-            pool.query(insertQuery, [eventoID, ID_Usuario], (err, results) => {
-                if (err) {
-                    console.error("Erro ao inscrever-se no evento:", err);
-                    return res.status(500).json({ error: 'Erro ao inscrever-se no evento.' });
-                }
-                res.json({ success: true });
-            });
-        });
-    });
+    } catch (err) {
+        console.error("Erro ao processar inscrição:", err);
+        return res.status(500).json({ error: 'Erro no servidor.' });
+    }
 });
 
 
