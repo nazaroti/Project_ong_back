@@ -224,7 +224,7 @@ app.post('/login', (req, res) => {
 });
 
 // Rota GET para obter o perfil do usuário (uso do middleware de verificação de token)
-app.get('/perfil', verificarToken, (req, res) => {
+app.get('/perfil',  (req, res) => {
     const userId = req.userId; // ID do usuário extraído do token
 
     // Consulta SQL ajustada para PostgreSQL
