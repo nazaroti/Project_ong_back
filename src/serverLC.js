@@ -255,7 +255,7 @@ app.get('/perfil', verificarToken, (req, res) => {
 // Rota PUT para atualizar o perfil do usuário autenticado
 app.put('/editar-perfil', verificarToken, (req, res) => {
     const userId = req.userId;
-    const { nome, sobrenome, telefone, email } = req.body;
+    const { nome, sobrenome, telefone } = req.body;
 
     // Validação dos dados recebidos
     if (!nome || !sobrenome || !telefone || !email) {
@@ -264,12 +264,11 @@ app.put('/editar-perfil', verificarToken, (req, res) => {
 
     // Consulta para atualizar os dados do usuário
     const updateQuery = `
-        UPDATE usuarios
-        SET nome = $1, sobrenome = $2, telefone = $3, email = $4
-        WHERE id = $5
-    `;
-
-    pool.query(updateQuery, [nome, sobrenome, telefone, email, userId], (err, results) => {
+    UPDATE usuarios
+    SET nome = $1, sobrenome = $2, telefone = $3
+    WHERE id = $4
+`;
+pool.query(updateQuery, [nome, sobrenome, telefone, userId], (err, results) => {
         if (err) {
             console.error('Erro ao atualizar o perfil do usuário:', err);
             return res.status(500).send({ message: 'Erro ao atualizar o perfil do usuário.' });
