@@ -112,7 +112,7 @@ function verificarToken(req, res, next) {
 
 app.get('/teste', async (req, res) => {
     try {
-        const result = await connection.query('SELECT * FROM evento');
+        const result = await connection.query('SELECT * FROM evento WHERE status = "ativo"');
         console.log(result);
         res.json(result); // Envia o resultado como resposta
     } catch (error) {
