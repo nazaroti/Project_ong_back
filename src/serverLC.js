@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const connection = require("./conexao_banco");
+const pool = require("./conexao_banco");
 const database = require("./models/db");
 const axios = require('axios');
 
@@ -112,7 +112,7 @@ function verificarToken(req, res, next) {
 
 app.get('/teste', async (req, res) => {
     try {
-        const result = await connection.query('SELECT * FROM evento'); // Busca todos os campos
+        const result = await pool.query('SELECT * FROM evento'); // Busca todos os campos
         const nomes = result.rows.map(evento => ({ nome: evento.nome })); // Filtra apenas o nome
         res.json(nomes); // Envia somente os nomes como resposta
     } catch (error) {
@@ -128,7 +128,7 @@ app.get('/teste2', async (req, res) => {
         WHERE Status = 'ativo' 
     `;
     try {
-        const result = await connection.query(query); // Executa a consulta com async/await
+        const result = await pool.query(query); // Executa a consulta com async/await
         res.json(result.rows); // Retorna apenas os resultados (linhas)
     } catch (err) {
         console.error('Erro ao buscar eventos:', err.message);
@@ -152,31 +152,28 @@ app.post('/cadastro', async (req, res) => {
     }
 
     try {
-        const checkEmailQuery = 'SELECT * FROM usuarios WHERE email = ?';
-        connection.query(checkEmailQuery, [email], async (err, results) => {
-            if (err) {
-                console.error('Erro ao verificar e-mail: ', err);
-                return res.status(500).send({ message: 'Erro ao verificar e-mail.' });
-            }
+        // Verificar se o e-mail já existe
+        const checkEmailQuery = 'SELECT * FROM usuarios WHERE email = $1';
+        const emailResult = await pool.query(checkEmailQuery, [email]);
 
-            if (results.length > 0) {
-                return res.status(409).send({ message: 'E-mail já cadastrado' });
-            }
+        if (emailResult.rows.length > 0) {
+            return res.status(409).send({ message: 'E-mail já cadastrado' });
+        }
 
-            const hashedPassword = await bcrypt.hash(password, 10);
-            const insertQuery = `INSERT INTO usuarios (nome, sobrenome, telefone, email, senha) 
-                                 VALUES (?, ?, ?, ?, ?)`;
-            connection.query(insertQuery, [nome, sobrenome, telefone, email, hashedPassword], (err, results) => {
-                if (err) {
-                    console.error('Erro ao cadastrar usuário: ', err);
-                    return res.status(500).send({ message: 'Erro ao cadastrar usuário' });
-                }
-                res.status(200).send({ message: 'Usuário cadastrado com sucesso!' });
-            });
-        });
+        // Criar senha hash
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Inserir novo usuário
+        const insertQuery = `
+            INSERT INTO usuarios (nome, sobrenome, telefone, email, senha)
+            VALUES ($1, $2, $3, $4, $5)
+        `;
+        await pool.query(insertQuery, [nome, sobrenome, telefone, email, hashedPassword]);
+
+        res.status(200).send({ message: 'Usuário cadastrado com sucesso!' });
     } catch (err) {
-        console.error('Erro ao processar a senha:', err);
-        return res.status(500).send({ message: 'Erro ao processar a senha.' });
+        console.error('Erro ao cadastrar usuário:', err);
+        res.status(500).send({ message: 'Erro ao cadastrar usuário.' });
     }
 });
 
@@ -189,7 +186,7 @@ app.post('/login', (req, res) => {
     }
 
     const query = 'SELECT * FROM usuarios WHERE Email = ?';
-    connection.query(query, [email], async (err, results) => {
+    pool.query(query, [email], async (err, results) => {
         if (err) {
             console.error('Erro ao verificar login no banco de dados:', err);
             return res.status(500).send({ message: 'Erro no servidor' });
@@ -229,7 +226,7 @@ app.get('/perfil', verificarToken, (req, res) => {
 
     // Busca as informações do usuário no banco de dados
     const query = 'SELECT * FROM usuarios WHERE id = ?';
-    connection.query(query, [userId], (err, results) => {
+    pool.query(query, [userId], (err, results) => {
         if (err) {
             console.error("Erro ao buscar o perfil do usuário:", err);
             return res.status(500).send({ message: 'Erro ao buscar o perfil do usuário.' });
@@ -250,7 +247,7 @@ app.put('/perfil', verificarToken, (req, res) => {
     const userId = req.userId;
     const { nome, sobrenome, telefone, email } = req.body;
     const updateQuery = 'UPDATE usuarios SET Nome = ?, Sobrenome = ?, Telefone = ?, Email = ? WHERE id = ?';
-    connection.query(updateQuery, [nome, sobrenome, telefone, email, userId], (err) => {
+    pool.query(updateQuery, [nome, sobrenome, telefone, email, userId], (err) => {
         if (err) return res.status(500).send({ message: 'Erro ao atualizar o perfil do usuário.' });
         res.status(200).send({ message: 'Perfil atualizado com sucesso.' });
     });
@@ -265,7 +262,7 @@ app.post('/adminLogin', async (req, res) => {
     }
 
     const query = 'SELECT * FROM adm WHERE Email = ?';
-    connection.query(query, [email], async (err, results) => {
+    pool.query(query, [email], async (err, results) => {
         if (err) {
             console.error('Erro ao verificar login do administrador:', err);
             return res.status(500).send({ message: 'Erro no servidor' });
@@ -324,7 +321,7 @@ app.post('/solicitarEvento', verificarToken, (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    connection.query(insertQuery, [userId, Nome, Descricao, Status, Data, Horario, Num_Vagas, Local, Duracao, Nome_Responsavel], (err, results) => {
+    pool.query(insertQuery, [userId, Nome, Descricao, Status, Data, Horario, Num_Vagas, Local, Duracao, Nome_Responsavel], (err, results) => {
         if (err) {
             console.error('Erro ao solicitar evento:', err);
             return res.status(500).send({ message: 'Erro ao solicitar evento.' });
@@ -343,7 +340,7 @@ app.get('/api/eventos', async(req, res) => {
         WHERE Status = 'ativo' 
     `;
     try {
-        const result = await connection.query(query); // Executa a consulta com async/await
+        const result = await pool.query(query); // Executa a consulta com async/await
         res.json(result.rows); // Retorna apenas os resultados (linhas)
     } catch (err) {
         console.error('Erro ao buscar eventos:', err.message);
@@ -359,7 +356,7 @@ app.get('/api/eventos2', (req, res) => {
         AND Data > CURDATE()
     `;
 
-    connection.query(query, (err, results) => {
+    pool.query(query, (err, results) => {
         if (err) {
             res.status(500).json({ error: 'Erro ao buscar eventos' });
             return;
@@ -386,7 +383,7 @@ app.post('/api/eventos/:eventoID/inscrever', (req, res) => {
         GROUP BY e.Num_Vagas
     `;
 
-    connection.query(vagasQuery, [eventoID], (err, results) => {
+    pool.query(vagasQuery, [eventoID], (err, results) => {
         if (err) {
             console.error("Erro ao verificar vagas disponíveis:", err);
             return res.status(500).json({ error: 'Erro no servidor.' });
@@ -408,7 +405,7 @@ app.post('/api/eventos/:eventoID/inscrever', (req, res) => {
             WHERE ID_Evento = ? AND ID_Usuario = ?
         `;
 
-        connection.query(checkQuery, [eventoID, ID_Usuario], (err, results) => {
+        pool.query(checkQuery, [eventoID, ID_Usuario], (err, results) => {
             if (err) {
                 console.error("Erro ao verificar duplicação de inscrição:", err);
                 return res.status(500).json({ error: 'Erro no servidor.' });
@@ -424,7 +421,7 @@ app.post('/api/eventos/:eventoID/inscrever', (req, res) => {
                 VALUES (?, ?)
             `;
 
-            connection.query(insertQuery, [eventoID, ID_Usuario], (err, results) => {
+            pool.query(insertQuery, [eventoID, ID_Usuario], (err, results) => {
                 if (err) {
                     console.error("Erro ao inscrever-se no evento:", err);
                     return res.status(500).json({ error: 'Erro ao inscrever-se no evento.' });
@@ -443,7 +440,7 @@ app.delete('/api/eventos/:eventId', verificarToken, (req, res) => {
 
     // Verificar se o evento existe e pertence ao usuário
     const checkEventQuery = 'SELECT * FROM evento WHERE ID_Evento = ? AND ID_Usuario = ?';
-    connection.query(checkEventQuery, [eventId, userId], (err, results) => {
+    pool.query(checkEventQuery, [eventId, userId], (err, results) => {
         if (err) {
             console.error('Erro ao verificar evento para exclusão:', err);
             return res.status(500).send({ message: 'Erro ao verificar evento para exclusão.' });
@@ -455,7 +452,7 @@ app.delete('/api/eventos/:eventId', verificarToken, (req, res) => {
 
         // Excluir o evento
         const deleteEventQuery = 'DELETE FROM evento WHERE ID_Evento = ?';
-        connection.query(deleteEventQuery, [eventId], (err) => {
+        pool.query(deleteEventQuery, [eventId], (err) => {
             if (err) {
                 console.error('Erro ao excluir evento:', err);
                 return res.status(500).send({ message: 'Erro ao excluir evento.' });
@@ -477,7 +474,7 @@ app.get('/api/eventos2', verificarToken, (req, res) => {
 
     // Consulta SQL para buscar todos os eventos do usuário
     const query = 'SELECT * FROM evento WHERE ID_Usuario = ?';
-    connection.query(query, [userId], (err, results) => {
+    pool.query(query, [userId], (err, results) => {
         if (err) {
             console.error('Erro ao buscar eventos:', err);
             return res.status(500).send({ message: 'Erro ao buscar eventos.' });
