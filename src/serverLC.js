@@ -491,10 +491,10 @@ app.get('/api/eventos/em-analise', async (req, res) => {
         });
 
         if (eventsInReview.length === 0) {
-            res.send(404).json({ message: 'Nenhum evento em análise encontrado.' });
+            return res.send(404).json({ message: 'Nenhum evento em análise encontrado.' });
         }
 
-        res.send(eventsInReview);
+        res.json(eventsInReview);
     } catch (err) {
         console.error("Erro ao buscar eventos:", err);
         res.status(500).json({ error: 'Erro interno no servidor ao buscar eventos.' });
