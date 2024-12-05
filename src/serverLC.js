@@ -373,30 +373,32 @@ app.get('/api/eventos', async(req, res) => {
 // Rota GET para retornar todos os eventos de um usuário
 app.get('/api/eventos2', verificarToken, (req, res) => {
     const userId = req.query.userId;
-    console.log("ID do usuário extraído do token:", userId);  // Log para verificar o userId
+    console.log("ID do usuário extraído do token:", userId); // Log para verificar o userId
 
     if (!userId) {
         return res.status(400).send({ message: 'Parâmetro userId não fornecido.' });
     }
 
     // Consulta SQL para buscar todos os eventos do usuário
-    const query = 'SELECT * FROM evento WHERE ID_Usuario = ?';
-    connection.query(query, [userId], (err, results) => {
-        if (err) {
+    const query = 'SELECT * FROM evento WHERE id_usuario = $1';
+
+    pool.query(query, [userId])
+        .then((result) => {
+            if (result.rows.length === 0) {
+                return res.status(404).send({ message: 'Nenhum evento encontrado para o usuário.' });
+            }
+
+            console.log('Eventos encontrados:', result.rows); // Log dos eventos retornados
+
+            // Retorna os eventos encontrados
+            res.status(200).json(result.rows);
+        })
+        .catch((err) => {
             console.error('Erro ao buscar eventos:', err);
-            return res.status(500).send({ message: 'Erro ao buscar eventos.' });
-        }
-
-        if (results.length === 0) {
-            return res.status(404).send({ message: 'Nenhum evento encontrado para o usuário.' });
-        }
-
-        console.log('Eventos encontrados:', results);  // Log dos eventos retornados
-
-        // Retorna os eventos encontrados
-        res.status(200).json(results);
-    });
+            res.status(500).send({ message: 'Erro ao buscar eventos.' });
+        });
 });
+
 
 app.post('/api/eventos/:eventoID/inscrever', async (req, res) => {
     const eventoID = req.params.eventoID;
