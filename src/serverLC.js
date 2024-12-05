@@ -114,7 +114,7 @@ app.get('/teste', async (req, res) => {
     try {
         const query = `
             SELECT nome 
-            FROM Eventos 
+            FROM evento 
             WHERE status = 'ativo';
         `;
         const result = await pool.query(query);
