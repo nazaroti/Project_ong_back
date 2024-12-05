@@ -338,20 +338,20 @@ app.post('/solicitarEvento', verificarToken, (req, res) => {
 
     // Consulta para inserir o evento no banco de dados
     const insertQuery = `
-        INSERT INTO evento (ID_Usuario, Nome, Descricao, Status, Data, Horario, Num_Vagas, Local, Duracao, Nome_Responsavel)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO evento (id_usuario, nome, descricao, status, data, horario, num_vagas, local, duracao, nome_responsavel)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     `;
 
-    pool.query(insertQuery, [userId, Nome, Descricao, Status, Data, Horario, Num_Vagas, Local, Duracao, Nome_Responsavel], (err, results) => {
-        if (err) {
+    pool.query(insertQuery, [userId, Nome, Descricao, Status, Data, Horario, Num_Vagas, Local, Duracao, Nome_Responsavel])
+        .then(() => {
+            res.status(200).send({ message: 'Evento solicitado com sucesso!' });
+        })
+        .catch((err) => {
             console.error('Erro ao solicitar evento:', err);
-            return res.status(500).send({ message: 'Erro ao solicitar evento.' });
-        }
-
-        // Retorna sucesso se o evento for inserido corretamente
-        res.status(200).send({ message: 'Evento solicitado com sucesso!' });
-    });
+            res.status(500).send({ message: 'Erro ao solicitar evento.' });
+        });
 });
+
 
 // Rota para obter eventos
 app.get('/api/eventos', async(req, res) => {
