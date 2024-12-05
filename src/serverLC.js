@@ -125,7 +125,7 @@ app.get('/teste2', async (req, res) => {
     const query = `
         SELECT * 
         FROM Evento 
-        WHERE Status = 'aprovado' 
+        WHERE Status = 'ativo' 
         AND Data > CURRENT_DATE
     `;
 
