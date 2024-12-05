@@ -358,7 +358,8 @@ app.get('/api/eventos', async(req, res) => {
     const query = `
         SELECT * 
         FROM Evento 
-        WHERE Status = 'ativo' 
+        WHERE Status = 'aprovado' 
+        AND Data > CURDATE()
     `;
     try {
         const result = await pool.query(query); // Executa a consulta com async/await
@@ -369,20 +370,31 @@ app.get('/api/eventos', async(req, res) => {
     }
 });
 
-app.get('/api/eventos2', (req, res) => {
-    const query = `
-        SELECT * 
-        FROM Evento 
-        WHERE Status = 'aprovado' 
-        AND Data > CURDATE()
-    `;
+// Rota GET para retornar todos os eventos de um usuário
+app.get('/api/eventos2', verificarToken, (req, res) => {
+    const userId = req.query.userId;
+    console.log("ID do usuário extraído do token:", userId);  // Log para verificar o userId
 
-    pool.query(query, (err, results) => {
+    if (!userId) {
+        return res.status(400).send({ message: 'Parâmetro userId não fornecido.' });
+    }
+
+    // Consulta SQL para buscar todos os eventos do usuário
+    const query = 'SELECT * FROM evento WHERE ID_Usuario = ?';
+    connection.query(query, [userId], (err, results) => {
         if (err) {
-            res.status(500).json({ error: 'Erro ao buscar eventos' });
-            return;
+            console.error('Erro ao buscar eventos:', err);
+            return res.status(500).send({ message: 'Erro ao buscar eventos.' });
         }
-        res.json(results); // Retorna apenas os eventos aprovados e futuros em formato JSON
+
+        if (results.length === 0) {
+            return res.status(404).send({ message: 'Nenhum evento encontrado para o usuário.' });
+        }
+
+        console.log('Eventos encontrados:', results);  // Log dos eventos retornados
+
+        // Retorna os eventos encontrados
+        res.status(200).json(results);
     });
 });
 
