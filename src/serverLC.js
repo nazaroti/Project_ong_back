@@ -227,20 +227,20 @@ app.post('/login', (req, res) => {
 app.get('/perfil', verificarToken, (req, res) => {
     const userId = req.userId; // ID do usuário extraído do token
 
-    // Busca as informações do usuário no banco de dados
-    const query = 'SELECT * FROM usuarios WHERE id = ?';
-    pool.query(query, [userId], (err, results) => {
+    // Consulta SQL ajustada para PostgreSQL
+    const query = 'SELECT * FROM usuarios WHERE id = $1'; // Utiliza $1 para evitar SQL Injection
+    pool.query(query, [userId], (err, result) => {
         if (err) {
-            console.error("Erro ao buscar o perfil do usuário:", err);
-            return res.status(500).send({ message: 'Erro ao buscar o perfil do usuário.' });
+            console.error('Erro ao buscar o perfil do usuário:', err);
+            return res.status(500).json({ message: 'Erro ao buscar o perfil do usuário.' });
         }
 
-        if (results.length > 0) {
-            const user = results[0];
-            res.status(200).send({ user });
+        if (result.rows.length > 0) {
+            const user = result.rows[0];
+            res.status(200).json({ user });
         } else {
-            console.log("Usuário não encontrado no banco de dados para o ID:", userId);
-            res.status(404).send({ message: 'Usuário não encontrado.' });
+            console.log('Usuário não encontrado no banco de dados para o ID:', userId);
+            res.status(404).json({ message: 'Usuário não encontrado.' });
         }
     });
 });
