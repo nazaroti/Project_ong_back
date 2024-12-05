@@ -110,23 +110,20 @@ function verificarToken(req, res, next) {
     });
 }
 
-app.get('/teste', async (req, res) => {
+app.get('/eventos-ativos', async (req, res) => {
     try {
-        const query = `
-            SELECT nome 
-            FROM evento 
-            WHERE status = 'ativo';
-        `;
-        const result = await pool.query(query);
+        const result = await connection.query('SELECT nome FROM evento WHERE status = "ativo"');
+        
+        // Extrai os nomes dos eventos
+        const nomesEventos = result.map(row => row.nome);
 
-        // Retorna apenas o nome do evento
-        const nomesEventos = result.rows.map(row => row.nome);
-        res.json(nomesEventos);
+        res.json(nomesEventos); // Retorna os nomes como resposta
     } catch (error) {
-        console.error('Erro ao consultar eventos ativos:', error.message);
-        res.status(500).json({ error: 'Erro ao consultar eventos ativos' });
+        console.error('Erro ao buscar eventos ativos:', error.message);
+        res.status(500).json({ error: 'Erro ao buscar eventos ativos' });
     }
 });
+
 
   
 
