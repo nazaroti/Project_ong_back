@@ -121,6 +121,17 @@ app.get('/teste', async (req, res) => {
     }
 });
 
+app.get('/teste2', async (req, res) => {
+    try {
+        const result = await connection.query('SELECT nome FROM evento WHERE status = "ativo"');
+        console.log(result);
+        res.json(result); // Envia o resultado como resposta
+    } catch (error) {
+        console.error('Erro ao buscar eventos:', error.message);
+        res.status(500).json({ error: 'Erro ao buscar eventos' });
+    }
+});
+
   
 
 // #region Rotas Principais//
