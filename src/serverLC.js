@@ -126,7 +126,6 @@ app.get('/teste2', async (req, res) => {
         SELECT * 
         FROM Evento 
         WHERE Status = 'ativo' 
-        AND Data > CURRENT_DATE
     `;
 
     try {
