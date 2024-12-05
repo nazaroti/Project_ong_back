@@ -258,7 +258,7 @@ app.put('/editar-perfil', verificarToken, (req, res) => {
     const { nome, sobrenome, telefone } = req.body;
 
     // Validação dos dados recebidos
-    if (!nome || !sobrenome || !telefone || !email) {
+    if (!nome || !sobrenome || !telefone) {
         return res.status(400).send({ message: 'Todos os campos são obrigatórios.' });
     }
 
