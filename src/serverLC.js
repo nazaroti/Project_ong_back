@@ -112,12 +112,19 @@ function verificarToken(req, res, next) {
 
 app.get('/teste', async (req, res) => {
     try {
-        const result = await connection.query('SELECT * FROM evento');
-        console.log(result);
-        res.json(result); // Envia o resultado como resposta
+        const query = `
+            SELECT nome 
+            FROM Eventos 
+            WHERE status = 'ativo';
+        `;
+        const result = await pool.query(query);
+
+        // Retorna apenas o nome do evento
+        const nomesEventos = result.rows.map(row => row.nome);
+        res.json(nomesEventos);
     } catch (error) {
-        console.error('Erro ao buscar eventos:', error.message);
-        res.status(500).json({ error: 'Erro ao buscar eventos' });
+        console.error('Erro ao consultar eventos ativos:', error.message);
+        res.status(500).json({ error: 'Erro ao consultar eventos ativos' });
     }
 });
 
