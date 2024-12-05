@@ -152,7 +152,7 @@ app.post('/cadastro', async (req, res) => {
     }
 
     try {
-        const checkEmailQuery = 'SELECT * FROM usuarios WHERE Email = ?';
+        const checkEmailQuery = 'SELECT * FROM usuarios WHERE email = ?';
         connection.query(checkEmailQuery, [email], async (err, results) => {
             if (err) {
                 console.error('Erro ao verificar e-mail: ', err);
