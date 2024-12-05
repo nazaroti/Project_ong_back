@@ -272,7 +272,7 @@ app.post('/adminLogin', async (req, res) => {
     }
 
     // Atualizar a consulta para usar PostgreSQL (com parâmetros $1)
-    const query = 'SELECT * FROM Adm WHERE Email = $1';
+    const query = 'SELECT * FROM adm WHERE email = $1';
     
     try {
         const { rows } = await pool.query(query, [email]);
@@ -284,9 +284,9 @@ app.post('/adminLogin', async (req, res) => {
             console.log('Administrador encontrado:', JSON.stringify(admin, null, 2));
 
             // Comparar a senha fornecida com a senha armazenada diretamente
-            if (password === admin.Senha) {
+            if (password === admin.senha) {
                 // Gera o token JWT com o ID do administrador e papel (role)
-                const token = gerarToken(admin.ID_Adm); // Use admin.ID_Adm para o token
+                const token = gerarToken(admin.id_adm); // Use admin.ID_Adm para o token
 
                 return res.status(200).send({
                     message: 'Login de administrador bem-sucedido',
