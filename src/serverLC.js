@@ -253,24 +253,15 @@ app.get('/perfil', verificarToken, (req, res) => {
 });
 
 // Rota PUT para atualizar o perfil do usuário autenticado
-app.put('/editar-perfil', verificarToken, (req, res) => {
+app.put('/perfil', verificarToken, (req, res) => {
     const userId = req.userId;
     const { nome, sobrenome, telefone, email } = req.body;
-
-    // Query corrigida para PostgreSQL
-    const updateQuery = 'UPDATE usuarios SET Nome = $1, Sobrenome = $2, Telefone = $3, Email = $4 WHERE id = $5';
-    
-    // Usando o pool para executar a consulta com parâmetros posicionais
+    const updateQuery = 'UPDATE usuarios SET Nome = ?, Sobrenome = ?, Telefone = ?, Email = ? WHERE id = ?';
     pool.query(updateQuery, [nome, sobrenome, telefone, email, userId], (err) => {
-        if (err) {
-            console.error('Erro ao atualizar o perfil do usuário:', err);
-            return res.status(500).send({ message: 'Erro ao atualizar o perfil do usuário.' });
-        }
-
+        if (err) return res.status(500).send({ message: 'Erro ao atualizar o perfil do usuário.' });
         res.status(200).send({ message: 'Perfil atualizado com sucesso.' });
     });
 });
-
 
 
 app.post('/adminLogin', async (req, res) => {
@@ -280,37 +271,45 @@ app.post('/adminLogin', async (req, res) => {
         return res.status(400).send({ message: 'Email e senha são obrigatórios.' });
     }
 
-    const query = 'SELECT * FROM adm WHERE Email = $1';
-    try {
-        const { rows } = await pool.query(query, [email]);
+    const query = 'SELECT * FROM adm WHERE Email = ?';
+    pool.query(query, [email], async (err, results) => {
+        if (err) {
+            console.error('Erro ao verificar login do administrador:', err);
+            return res.status(500).send({ message: 'Erro no servidor' });
+        }
 
-        if (rows.length > 0) {
-            const admin = rows[0];
+        if (results.length > 0) {
+            const admin = results[0];
 
             // Imprimir o JSON do administrador no terminal
             console.log('Administrador encontrado:', JSON.stringify(admin, null, 2));
 
-            // Verifica se a senha armazenada no banco corresponde à senha fornecida
-            const isMatch = await bcrypt.compare(password, admin.senha);
+            // Verificar se a senha existe e não é nula
+            if (!admin.Senha) {
+                return res.status(500).send({ message: 'Dados inválidos para a comparação de senha.' });
+            }
 
-            if (isMatch) {
-                // Gera o token JWT com o ID do administrador
-                const token = gerarToken(admin.id);  // Supondo que você tenha uma função 'gerarToken'
+            try {
+                // Comparação com senha simples (sem hash, caso seja hash use bcrypt como no exemplo anterior)
+                if (password === admin.Senha) {
+                    // Gera o token JWT com o ID do administrador e papel (role)
+                    const token = gerarToken(admin.id);
 
-                return res.status(200).send({
-                    message: 'Login de administrador bem-sucedido',
-                    token,
-                });
-            } else {
-                return res.status(401).send({ message: 'Usuário ou senha de administrador incorretos' });
+                    return res.status(200).send({
+                        message: 'Login de administrador bem-sucedido',
+                        token,
+                    });
+                } else {
+                    return res.status(401).send({ message: 'Usuário ou senha de administrador incorretos' });
+                }
+            } catch (error) {
+                console.error('Erro ao comparar a senha:', error);
+                return res.status(500).send({ message: 'Erro ao processar a comparação da senha.' });
             }
         } else {
             return res.status(401).send({ message: 'Usuário ou senha de administrador incorretos' });
         }
-    } catch (err) {
-        console.error('Erro ao verificar login do administrador:', err);
-        return res.status(500).send({ message: 'Erro no servidor' });
-    }
+    });
 });
 
 // Rota POST para solicitar um evento
@@ -329,7 +328,7 @@ app.post('/solicitarEvento', verificarToken, (req, res) => {
     // Consulta para inserir o evento no banco de dados
     const insertQuery = `
         INSERT INTO evento (ID_Usuario, Nome, Descricao, Status, Data, Horario, Num_Vagas, Local, Duracao, Nome_Responsavel)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     pool.query(insertQuery, [userId, Nome, Descricao, Status, Data, Horario, Num_Vagas, Local, Duracao, Nome_Responsavel], (err, results) => {
@@ -376,68 +375,72 @@ app.get('/api/eventos2', (req, res) => {
     });
 });
 
-aapp.post('/api/eventos/:eventoID/inscrever', async (req, res) => {
+app.post('/api/eventos/:eventoID/inscrever', (req, res) => {
     const eventoID = req.params.eventoID;
     const { ID_Usuario } = req.body;
 
-    // Validação dos dados
     if (!eventoID || !ID_Usuario) {
         return res.status(400).json({ error: 'Dados insuficientes para inscrição.' });
     }
 
-    try {
-        // Verificar se o evento existe
-        const eventoQuery = `
-            SELECT Num_Vagas FROM evento WHERE ID_Evento = $1
-        `;
-        const eventoResult = await pool.query(eventoQuery, [eventoID]);
+    // Verificar número de vagas disponíveis
+    const vagasQuery = `
+        SELECT 
+            e.Num_Vagas - COUNT(ie.ID_Inscricao) AS Vagas_Disponiveis
+        FROM evento e
+        LEFT JOIN inscrever_evento ie ON e.ID_Evento = ie.ID_Evento
+        WHERE e.ID_Evento = ?
+        GROUP BY e.Num_Vagas
+    `;
 
-        if (eventoResult.rows.length === 0) {
+    pool.query(vagasQuery, [eventoID], (err, results) => {
+        if (err) {
+            console.error("Erro ao verificar vagas disponíveis:", err);
+            return res.status(500).json({ error: 'Erro no servidor.' });
+        }
+
+        if (results.length === 0) {
             return res.status(404).json({ error: 'Evento não encontrado.' });
         }
 
-        // Verificar número de vagas disponíveis
-        const vagasDisponiveisQuery = `
-            SELECT e.Num_Vagas - COUNT(ie.ID_Inscricao) AS Vagas_Disponiveis
-            FROM evento e
-            LEFT JOIN inscrever_evento ie ON e.ID_Evento = ie.ID_Evento
-            WHERE e.ID_Evento = $1
-            GROUP BY e.Num_Vagas
-        `;
-        const vagasResult = await pool.query(vagasDisponiveisQuery, [eventoID]);
-
-        const vagasDisponiveis = vagasResult.rows[0].vagas_disponiveis;
+        const vagasDisponiveis = results[0].Vagas_Disponiveis;
 
         if (vagasDisponiveis <= 0) {
             return res.status(400).json({ error: 'Não há vagas disponíveis para este evento.' });
         }
 
-        // Verificar se o usuário já está inscrito
-        const checkInscricaoQuery = `
+        // Verificar duplicação de inscrições
+        const checkQuery = `
             SELECT * FROM inscrever_evento 
-            WHERE ID_Evento = $1 AND ID_Usuario = $2
+            WHERE ID_Evento = ? AND ID_Usuario = ?
         `;
-        const checkInscricaoResult = await pool.query(checkInscricaoQuery, [eventoID, ID_Usuario]);
 
-        if (checkInscricaoResult.rows.length > 0) {
-            return res.status(400).json({ error: 'Usuário já inscrito neste evento.' });
-        }
+        pool.query(checkQuery, [eventoID, ID_Usuario], (err, results) => {
+            if (err) {
+                console.error("Erro ao verificar duplicação de inscrição:", err);
+                return res.status(500).json({ error: 'Erro no servidor.' });
+            }
 
-        // Inserir inscrição
-        const insertInscricaoQuery = `
-            INSERT INTO inscrever_evento (ID_Evento, ID_Usuario)
-            VALUES ($1, $2)
-        `;
-        await pool.query(insertInscricaoQuery, [eventoID, ID_Usuario]);
+            if (results.length > 0) {
+                return res.status(400).json({ error: 'Usuário já inscrito neste evento.' });
+            }
 
-        return res.json({ success: true, message: 'Inscrição realizada com sucesso!' });
+            // Inserir inscrição
+            const insertQuery = `
+                INSERT INTO inscrever_evento (ID_Evento, ID_Usuario)
+                VALUES (?, ?)
+            `;
 
-    } catch (err) {
-        console.error('Erro ao processar inscrição:', err);
-        return res.status(500).json({ error: 'Erro no servidor.' });
-    }
+            pool.query(insertQuery, [eventoID, ID_Usuario], (err, results) => {
+                if (err) {
+                    console.error("Erro ao inscrever-se no evento:", err);
+                    return res.status(500).json({ error: 'Erro ao inscrever-se no evento.' });
+                }
+                res.json({ success: true });
+            });
+        });
+    });
 });
-
 
 
 // Rota DELETE para excluir evento
@@ -470,7 +473,33 @@ app.delete('/api/eventos/:eventId', verificarToken, (req, res) => {
     });
 });
 
+// Rota GET para retornar todos os eventos de um usuário
+app.get('/api/eventos2', verificarToken, (req, res) => {
+    const userId = req.query.userId;
+    console.log("ID do usuário extraído do token:", userId);  // Log para verificar o userId
 
+    if (!userId) {
+        return res.status(400).send({ message: 'Parâmetro userId não fornecido.' });
+    }
+
+    // Consulta SQL para buscar todos os eventos do usuário
+    const query = 'SELECT * FROM evento WHERE ID_Usuario = ?';
+    pool.query(query, [userId], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar eventos:', err);
+            return res.status(500).send({ message: 'Erro ao buscar eventos.' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).send({ message: 'Nenhum evento encontrado para o usuário.' });
+        }
+
+        console.log('Eventos encontrados:', results);  // Log dos eventos retornados
+
+        // Retorna os eventos encontrados
+        res.status(200).json(results);
+    });
+});
 
 // #endregion //
 
