@@ -164,7 +164,7 @@ app.post('/cadastro', async (req, res) => {
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
-            const insertQuery = `INSERT INTO usuarios (Nome, Sobrenome, Telefone, Email, Senha) 
+            const insertQuery = `INSERT INTO usuarios (nome, sobrenome, telefone, email, senha) 
                                  VALUES (?, ?, ?, ?, ?)`;
             connection.query(insertQuery, [nome, sobrenome, telefone, email, hashedPassword], (err, results) => {
                 if (err) {
