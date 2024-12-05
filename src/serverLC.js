@@ -112,7 +112,7 @@ function verificarToken(req, res, next) {
 
 app.get('/', async (req, res) => {
     try {
-      const result = await client.query('SELECT * FROM evento');
+      const result = await connection.query('SELECT * FROM evento');
       console.log(result);
     } catch (error) {
       console.error('Erro ao buscar eventos:', error.message);
