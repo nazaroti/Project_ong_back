@@ -112,7 +112,7 @@ function verificarToken(req, res, next) {
 
 app.get('/eventos-ativos', async (req, res) => {
     try {
-        const result = await connection.query('SELECT nome FROM evento WHERE status = "ativo"');
+        const result = await connection.query('SELECT Nome FROM Evento WHERE Status = "ativo"');
         
         // Extrai os nomes dos eventos
         const nomesEventos = result.map(row => row.nome);
