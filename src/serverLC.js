@@ -351,6 +351,23 @@ app.get('/api/eventos', async(req, res) => {
     }
 });
 
+app.get('/api/eventos2', (req, res) => {
+    const query = `
+        SELECT * 
+        FROM Evento 
+        WHERE Status = 'aprovado' 
+        AND Data > CURDATE()
+    `;
+
+    connection.query(query, (err, results) => {
+        if (err) {
+            res.status(500).json({ error: 'Erro ao buscar eventos' });
+            return;
+        }
+        res.json(results); // Retorna apenas os eventos aprovados e futuros em formato JSON
+    });
+});
+
 app.post('/api/eventos/:eventoID/inscrever', (req, res) => {
     const eventoID = req.params.eventoID;
     const { ID_Usuario } = req.body;
