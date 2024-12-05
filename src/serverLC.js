@@ -76,18 +76,16 @@ app.use(express.json());
 const port = process.env.PORT || 3000;
 const SECRET_KEY = 'sua_chave_secreta';
 
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*'); // Permite qualquer origem
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    
-    // Permitir preflight requests (opcional, mas útil para algumas configurações de CORS)
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
-    
-    next();
-});
+const allowedOrigins = [
+    'https://projetct-ong-front.vercel.app/',
+    'https://project-ong-back.onrender.com'
+];
+
+app.use(cors({
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 
 // Função para gerar o token JWT
