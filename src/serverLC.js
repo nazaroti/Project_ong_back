@@ -271,45 +271,37 @@ app.post('/adminLogin', async (req, res) => {
         return res.status(400).send({ message: 'Email e senha são obrigatórios.' });
     }
 
-    const query = 'SELECT * FROM adm WHERE Email = ?';
-    pool.query(query, [email], async (err, results) => {
-        if (err) {
-            console.error('Erro ao verificar login do administrador:', err);
-            return res.status(500).send({ message: 'Erro no servidor' });
-        }
+    // Atualizar a consulta para usar PostgreSQL (com parâmetros $1)
+    const query = 'SELECT * FROM Adm WHERE Email = $1';
+    
+    try {
+        const { rows } = await pool.query(query, [email]);
 
-        if (results.length > 0) {
-            const admin = results[0];
+        if (rows.length > 0) {
+            const admin = rows[0];
 
             // Imprimir o JSON do administrador no terminal
             console.log('Administrador encontrado:', JSON.stringify(admin, null, 2));
 
-            // Verificar se a senha existe e não é nula
-            if (!admin.Senha) {
-                return res.status(500).send({ message: 'Dados inválidos para a comparação de senha.' });
-            }
+            // Comparar a senha fornecida com a senha armazenada diretamente
+            if (password === admin.Senha) {
+                // Gera o token JWT com o ID do administrador e papel (role)
+                const token = gerarToken(admin.ID_Adm); // Use admin.ID_Adm para o token
 
-            try {
-                // Comparação com senha simples (sem hash, caso seja hash use bcrypt como no exemplo anterior)
-                if (password === admin.Senha) {
-                    // Gera o token JWT com o ID do administrador e papel (role)
-                    const token = gerarToken(admin.id);
-
-                    return res.status(200).send({
-                        message: 'Login de administrador bem-sucedido',
-                        token,
-                    });
-                } else {
-                    return res.status(401).send({ message: 'Usuário ou senha de administrador incorretos' });
-                }
-            } catch (error) {
-                console.error('Erro ao comparar a senha:', error);
-                return res.status(500).send({ message: 'Erro ao processar a comparação da senha.' });
+                return res.status(200).send({
+                    message: 'Login de administrador bem-sucedido',
+                    token,
+                });
+            } else {
+                return res.status(401).send({ message: 'Usuário ou senha de administrador incorretos' });
             }
         } else {
             return res.status(401).send({ message: 'Usuário ou senha de administrador incorretos' });
         }
-    });
+    } catch (err) {
+        console.error('Erro ao verificar login do administrador:', err);
+        return res.status(500).send({ message: 'Erro no servidor' });
+    }
 });
 
 // Rota POST para solicitar um evento
