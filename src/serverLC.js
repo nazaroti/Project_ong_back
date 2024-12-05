@@ -253,7 +253,7 @@ app.get('/perfil', verificarToken, (req, res) => {
 });
 
 // Rota PUT para atualizar o perfil do usuário autenticado
-app.put('/editar-perfil', verificarToken, (req, res) => {
+app.put('/editarPerfil', verificarToken, (req, res) => {
     const userId = req.userId;
     const { nome, sobrenome, telefone } = req.body;
 
