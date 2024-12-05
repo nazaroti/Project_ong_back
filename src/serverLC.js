@@ -121,6 +121,24 @@ app.get('/teste', async (req, res) => {
     }
 });
 
+app.get('/teste2', async (req, res) => {
+    const query = `
+        SELECT * 
+        FROM Evento 
+        WHERE Status = 'aprovado' 
+        AND Data > CURRENT_DATE
+    `;
+
+    try {
+        const result = await connection.query(query); // Executa a consulta com async/await
+        res.json(result.rows); // Retorna apenas os resultados (linhas)
+    } catch (err) {
+        console.error('Erro ao buscar eventos:', err.message);
+        res.status(500).json({ error: 'Erro ao buscar eventos' });
+    }
+});
+
+
 
 
 
