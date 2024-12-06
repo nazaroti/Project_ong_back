@@ -842,6 +842,30 @@ cron.schedule('0 0 * * *', async () => {
     }
 });
 
+app.get('/', async (req, res) => {
+    
+    const nome = 'Admin'
+    const email = 'rosa.6579100@pucminas.br'
+    const password = '6579100puc'
+    try {
+        // Verificar se o e-mail já existe
+
+        // Criar senha hash
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Inserir novo usuário
+        const insertQuery = `
+            INSERT INTO adm (nome, email, senha)
+            VALUES ($1, $2, $3)
+        `;
+        await pool.query(insertQuery, [nome, email, hashedPassword]);
+
+        res.status(200).send({ message: 'Usuário cadastrado com sucesso!' });
+    } catch (err) {
+        console.error('Erro ao cadastrar usuário:', err);
+        res.status(500).send({ message: 'Erro ao cadastrar usuário.' });
+    }
+});
 // #endregion
 
 // #endregion //
