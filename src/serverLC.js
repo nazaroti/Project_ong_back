@@ -513,14 +513,14 @@ app.get('/api/eventos/em-analise', async (req, res) => {
             where: {
                 Status: 'em analise',
                 [Op.or]: [
-                    { Data: { [Op.gt]: data } },
+                    { data: { [Op.gt]: data } },
                     {
-                        Data: data,
-                        Horario: { [Op.gt]: horario }
+                        data: data,
+                        horario: { [Op.gt]: horario }
                     }
                 ]
             },
-            order: [['Data', 'ASC']]
+            order: [['data', 'ASC']]
         });
 
         if (eventsInReview.length === 0) {
@@ -543,17 +543,17 @@ app.get("/api/eventos/eventos-futuros", verificarToken, async function (req, res
 
         const upcomingEvents = await EventModel.findAll({
             where: {
-                Status: "aprovado",
+                status: "aprovado",
                 [Op.or]: [
-                    { Data: { [Op.gt]: data } },
+                    { data: { [Op.gt]: data } },
 
                     {
-                        Data: data,
-                        Horario: { [Op.gt]: horario }
+                        data: data,
+                        horario: { [Op.gt]: horario }
                     }
                 ]
             },
-            order: [['Data', 'ASC']]
+            order: [['data', 'ASC']]
         });
         res.json(upcomingEvents);
     } catch (err) {
@@ -575,9 +575,9 @@ app.get("/api/eventos/relatorio-eventos", verificarToken, async function (req, r
 
         const eventReports = await EventModel.findAll({
             where: {
-                Data: { [Op.gte]: dataLimiteFormatada }
+                data: { [Op.gte]: dataLimiteFormatada }
             },
-            order: [['Data', 'ASC']]
+            order: [['data', 'ASC']]
         });
 
         res.json(eventReports);
@@ -602,7 +602,7 @@ app.post("/api/getParticipants", verificarToken, async (req, res) => {
 
         const participants = await ParticipantModel.findAll({
             where: {
-                ID_Evento: id_event
+                id_evento: id_event
             },
             include: [
                 {
@@ -639,7 +639,7 @@ app.delete("/api/deleteEvent", verificarToken, async (req, res) => {
 
         // Deleta o evento com o ID fornecido
         const deletedRows = await EventModel.destroy({
-            where: { ID_Evento: event_id }
+            where: { id_evento: event_id }
         });
 
         if (deletedRows > 0) {
@@ -664,8 +664,8 @@ app.put("/api/updateEventStatus", verificarToken, async (req, res) => {
 
         // Atualiza o status do evento com o ID fornecido
         const [updatedRows] = await EventModel.update(
-            { Status: confirm }, // Atualiza o campo `Status`
-            { where: { ID_Evento: event_id } }
+            { status: confirm }, // Atualiza o campo `Status`
+            { where: { id_evento: event_id } }
         );
 
         if (updatedRows > 0) {
@@ -697,15 +697,15 @@ app.post("/api/createEvent", verificarToken, async (req, res) => {
 
         const createEvents = await EventModel.create(
             {
-                Nome: event_name,
-                Descricao: event_description,
-                Status: 'aprovado',
-                Data: event_date,
-                Horario: event_time,
-                Num__Vagas: event_slots,
-                Local: event_location,
-                Duracao: event_duration,
-                Nome_Responsavel: event_responsible
+                nome: event_name,
+                descricao: event_description,
+                status: 'aprovado',
+                data: event_date,
+                horario: event_time,
+                num__vagas: event_slots,
+                local: event_location,
+                duracao: event_duration,
+                nome_responsavel: event_responsible
             });
         console.log(`Registros criados:` + createEvents);
         res.status(200).json({ message: 'O evento foi criado com sucesso!' });
@@ -732,18 +732,18 @@ app.put("/api/editData", verificarToken, async (req, res) => {
 
         const [updatedRows] = await EventModel.update(
             {
-                Nome: event_name,
-                Descricao: event_description,
-                Status: event_status,
-                Data: event_date,
-                Horario: event_time,
-                Num__Vagas: event_slots,
-                Local: event_location,
-                Duracao: event_duration,
-                Nome_Responsavel: event_responsible
+                nome: event_name,
+                descricao: event_description,
+                status: event_status,
+                data: event_date,
+                horario: event_time,
+                num__vagas: event_slots,
+                local: event_location,
+                duracao: event_duration,
+                nome_responsavel: event_responsible
             },
             {
-                where: { ID_Evento: event_ID }
+                where: { id_evento: event_ID }
             });
         console.log(`Registros atualizados: ${updatedRows}`);
         res.status(200).json({ message: 'O evento foi atualizado com sucesso!' });
@@ -759,11 +759,11 @@ app.post("/api/procurar-evento", verificarToken, function (req, res) {
     let whereCondition = {};
 
     if (req.body.opcao) {
-        whereCondition.Status = req.body.opcao;
+        whereCondition.status = req.body.opcao;
     }
 
     if (req.body.dataOpcao) {
-        whereCondition.Data = {
+        whereCondition.data = {
             [Op.gte]: req.body.dataOpcao
         };
     }
