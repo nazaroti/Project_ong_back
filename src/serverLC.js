@@ -603,18 +603,16 @@ app.post("/api/getParticipants", verificarToken, async (req, res) => {
 
         // Verifica se o evento existe
         const participants = await ParticipantModel.findAll({
-            where: {
-                id_evento: id_event
-            },
+            where: { id_evento: id_event },
             include: [
                 {
                     model: UserModel,
-                    as: 'user', // Verifique se o alias está correto
-                    attributes: ['nome'],
+                    as: 'user', 
+                    attributes: ['nome', 'sobrenome'], // Inclua sobrenome aqui
                 }
             ],
         });
-
+        
         if (participants && participants.length > 0) {
             // Extrai os nomes e sobrenomes dos participantes e concatena
             const userNames = participants
