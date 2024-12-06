@@ -458,34 +458,41 @@ app.post('/api/eventos/:eventoID/inscrever', async (req, res) => {
 
 
 // Rota DELETE para excluir evento
-app.delete('/api/eventos/:eventId', verificarToken, (req, res) => {
+app.delete('/api/eventos/:eventId', verificarToken, async (req, res) => {
     const eventId = req.params.eventId;
-    const userId = req.userId;
+    const userId = req.userId; // ID do usuário extraído pelo middleware `verificarToken`
 
-    // Verificar se o evento existe e pertence ao usuário
-    const checkEventQuery = 'SELECT * FROM evento WHERE ID_Evento = ? AND ID_Usuario = ?';
-    pool.query(checkEventQuery, [eventId, userId], (err, results) => {
-        if (err) {
-            console.error('Erro ao verificar evento para exclusão:', err);
-            return res.status(500).send({ message: 'Erro ao verificar evento para exclusão.' });
-        }
+    if (!eventId || isNaN(eventId)) {
+        return res.status(400).send({ message: 'ID do evento inválido ou não fornecido.' });
+    }
 
-        if (results.length === 0) {
+    try {
+        // Verificar se o evento existe e pertence ao usuário autenticado
+        const checkEventQuery = `
+            SELECT * 
+            FROM evento 
+            WHERE "ID_Evento" = $1 AND "ID_Usuario" = $2`;
+
+        const checkEventResult = await pool.query(checkEventQuery, [eventId, userId]);
+
+        if (checkEventResult.rows.length === 0) {
             return res.status(404).send({ message: 'Evento não encontrado ou não pertence ao usuário.' });
         }
 
         // Excluir o evento
-        const deleteEventQuery = 'DELETE FROM evento WHERE ID_Evento = ?';
-        pool.query(deleteEventQuery, [eventId], (err) => {
-            if (err) {
-                console.error('Erro ao excluir evento:', err);
-                return res.status(500).send({ message: 'Erro ao excluir evento.' });
-            }
+        const deleteEventQuery = `
+            DELETE FROM evento 
+            WHERE "ID_Evento" = $1`;
 
-            res.status(200).send({ message: 'Evento excluído com sucesso.' });
-        });
-    });
+        await pool.query(deleteEventQuery, [eventId]);
+
+        res.status(200).send({ message: 'Evento excluído com sucesso.' });
+    } catch (err) {
+        console.error('Erro ao excluir evento:', err);
+        res.status(500).send({ message: 'Erro ao excluir o evento.' });
+    }
 });
+
 
 
 // #endregion //
