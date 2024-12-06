@@ -458,8 +458,8 @@ app.post('/api/eventos/:eventoID/inscrever', async (req, res) => {
 
 
 // Rota DELETE para excluir evento
-app.delete('/api/eventos/:eventId', verificarToken, async (req, res) => {
-    const eventId = req.params.eventId;
+app.delete('/api/eventos', verificarToken, async (req, res) => {
+    const eventId = req.query.eventId; // Extrai o `eventId` da query string
     const userId = req.userId; // ID do usuário extraído pelo middleware `verificarToken`
 
     if (!eventId || isNaN(eventId)) {
