@@ -524,7 +524,8 @@ app.get('/api/eventos/em-analise', async (req, res) => {
         });
 
         if (eventsInReview.length === 0) {
-            return res.status(404).json({ message: 'Nenhum evento em análise encontrado.' });
+            res.status(404).json({ message: 'Nenhum evento em análise encontrado.' });
+            return null;
         }
 
         res.json(eventsInReview);
