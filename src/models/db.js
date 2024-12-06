@@ -5,27 +5,27 @@ const sequelize = new Sequelize('project_ong_banco', 'project_ong_banco_user', '
   host: 'dpg-ct76dibtq21c73bjo40g-a.oregon-postgres.render.com',
   dialect: 'postgres',
   port: 5432,
-  ssl: {
-    require: true, // Exige SSL
-    rejectUnauthorized: false, // Desabilita a verificação do certificado
-  },
   dialectOptions: {
     ssl: {
-      require: true,
-      rejectUnauthorized: false, // Ignora erro de certificado não verificado
+      require: true, // Exige SSL para a conexão
+      rejectUnauthorized: false, // Ignora erros de certificados autoassinados
     }
-  }
+  },
+  logging: false, // Desativa logs do Sequelize (opcional, para menos ruído)
 });
 
-sequelize.authenticate()
-  .then(() => {
+// Testar a conexão com o banco de dados
+(async () => {
+  try {
+    await sequelize.authenticate();
     console.log('Conexão com o banco de dados foi bem-sucedida!');
-  })
-  .catch((err) => {
-    console.error('Erro ao conectar ao banco de dados:', err.message);
-  });
+  } catch (error) {
+    console.error('Erro ao conectar ao banco de dados:', error.message);
+  }
+})();
 
 module.exports = {
   Sequelize,
   sequelize,
 };
+
