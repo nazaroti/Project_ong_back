@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const pool = require("./conexao_banco");
 const database = require("./models/db");
 const axios = require('axios');
+const cron = require('node-cron');
 
 const { Op } = require("sequelize");
 const path = require("path");
@@ -636,7 +637,30 @@ app.post("/api/getParticipants", verificarToken, async (req, res) => {
     }
 });
 
+app.delete("/api/eventos/deletOld", verificarToken, async (req, res) => {
+    try {
+        const dataAtual = new Date();
+        const dataLimite = new Date(dataAtual);
+        dataLimite.setDate(dataAtual.getDate() - 30); // Data limite: 30 dias atrás
+        const dataLimiteFormatada = dataLimite.toLocaleDateString('en-CA'); // Formata para 'YYYY-MM-DD'
 
+        // Exclui eventos mais antigos que a data limite
+        const deletedRows = await EventModel.destroy({
+            where: {
+                data: { [Op.lt]: dataLimiteFormatada } 
+            }
+        });
+
+        if (deletedRows > 0) {
+            res.status(200).json({ message: `${deletedRows} eventos antigos excluídos com sucesso!` });
+        } else {
+            res.status(200).json({ message: 'Nenhum evento antigo para excluir.' });
+        }
+    } catch (error) {
+        console.error("Erro ao excluir eventos antigos:", error);
+        res.status(500).send("Erro ao processar a exclusão.");
+    }
+});
 
 
 
@@ -787,6 +811,25 @@ app.post("/api/verificar-token", verificarToken, function (req, res) {
 
     res.status(200).json();
 })
+
+cron.schedule('0 0 * * *', async () => {
+    try {
+        const dataAtual = new Date();
+        const dataLimite = new Date(dataAtual);
+        dataLimite.setDate(dataAtual.getDate() - 30);
+        const dataLimiteFormatada = dataLimite.toLocaleDateString('en-CA');
+
+        const deletedRows = await EventModel.destroy({
+            where: {
+                data: { [Op.lt]: dataLimiteFormatada }
+            }
+        });
+
+        console.log(`${deletedRows} eventos antigos excluídos automaticamente.`);
+    } catch (error) {
+        console.error("Erro ao excluir eventos antigos automaticamente:", error);
+    }
+});
 
 // #endregion
 
