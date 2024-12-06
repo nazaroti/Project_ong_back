@@ -523,10 +523,6 @@ app.get('/api/eventos/em-analise', async (req, res) => {
             order: [['data', 'ASC']]
         });
 
-        if (eventsInReview.length === 0) {
-            return res.status(404).json({ message: 'Nenhum evento em análise encontrado.' });
-        }
-
         res.json(eventsInReview);
     } catch (err) {
         console.error("Erro ao buscar eventos:", err);
