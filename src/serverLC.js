@@ -80,12 +80,12 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*'); // Permite qualquer origem
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    
+
     // Permitir preflight requests (opcional, mas útil para algumas configurações de CORS)
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
-    
+
     next();
 });
 
@@ -268,7 +268,7 @@ app.put('/editar-perfil', verificarToken, (req, res) => {
     SET nome = $1, sobrenome = $2, telefone = $3
     WHERE id = $4
 `;
-pool.query(updateQuery, [nome, sobrenome, telefone, userId], (err, results) => {
+    pool.query(updateQuery, [nome, sobrenome, telefone, userId], (err, results) => {
         if (err) {
             console.error('Erro ao atualizar o perfil do usuário:', err);
             return res.status(500).send({ message: 'Erro ao atualizar o perfil do usuário.' });
@@ -292,7 +292,7 @@ app.post('/adminLogin', async (req, res) => {
 
     // Atualizar a consulta para usar PostgreSQL (com parâmetros $1)
     const query = 'SELECT * FROM adm WHERE email = $1';
-    
+
     try {
         const { rows } = await pool.query(query, [email]);
 
@@ -354,7 +354,7 @@ app.post('/solicitarEvento', verificarToken, (req, res) => {
 
 
 // Rota para obter eventos
-app.get('/api/eventos', async(req, res) => {
+app.get('/api/eventos', async (req, res) => {
     const query = `
         SELECT * 
         FROM evento 
@@ -524,7 +524,7 @@ app.get('/api/eventos/em-analise', async (req, res) => {
         });
 
         if (eventsInReview.length === 0) {
-            return res.send(404).json({ message: 'Nenhum evento em análise encontrado.' });
+            return res.status(404).json({ message: 'Nenhum evento em análise encontrado.' });
         }
 
         res.json(eventsInReview);
