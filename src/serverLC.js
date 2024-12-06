@@ -357,9 +357,9 @@ app.post('/solicitarEvento', verificarToken, (req, res) => {
 app.get('/api/eventos', async(req, res) => {
     const query = `
         SELECT * 
-        FROM Evento 
-        WHERE Status = 'aprovado' 
-        AND Data > CURDATE()
+        FROM evento 
+        WHERE status = 'aprovado' 
+        AND data > CURDATE()
     `;
     try {
         const result = await pool.query(query); // Executa a consulta com async/await
