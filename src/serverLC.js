@@ -555,6 +555,7 @@ app.get("/api/eventos/eventos-futuros", verificarToken, async function (req, res
             },
             order: [['data', 'ASC']]
         });
+        console.log(upcomingEvents);
         res.json(upcomingEvents);
     } catch (err) {
         console.error("Erro ao buscar eventos:", err);
