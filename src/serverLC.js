@@ -619,6 +619,7 @@ app.post("/api/getParticipants", verificarToken, async (req, res) => {
                 .map(participant => participant.user ? participant.user.nome : null)
                 .filter(nome => nome !== null);
 
+                console.log(userNames)
             return res.json({ participants: userNames });
         } else {
             return res.json({ participants: [] });
