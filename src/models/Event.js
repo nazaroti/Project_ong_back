@@ -1,62 +1,64 @@
 const bd = require('./db');
 
 const Evento = bd.sequelize.define('evento', {
-    ID_Evento: {
+    id_evento: {
         type: bd.Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true
     },
-    ID_Usuario: {
+    id_usuario: {
         type: bd.Sequelize.INTEGER,
         allowNull: true
     },
-    Nome: {
+    nome: {
         type: bd.Sequelize.STRING(100),
         allowNull: true
     },
-    Descricao: {
+    descricao: {
         type: bd.Sequelize.STRING(300),
         allowNull: true
     },
-    Status: {
+    status: {
         type: bd.Sequelize.STRING(30),
         allowNull: true
     },
-    Data: {
+    data: {
         type: bd.Sequelize.DATEONLY,
         allowNull: false
     },
-    Horario: {
+    horario: {
         type: bd.Sequelize.TIME,
         allowNull: true
     },
-    Num_Vagas: {
+    num_vagas: {
         type: bd.Sequelize.INTEGER,
         allowNull: true
     },
-    Local: {
+    local: {
         type: bd.Sequelize.STRING(150),
         allowNull: true
     },
-    Duracao: {
+    duracao: {
         type: bd.Sequelize.TIME,
         allowNull: true
     },
-    Nome_Responsavel: {
+    nome_responsavel: {
         type: bd.Sequelize.STRING(100),
         allowNull: true
     },
-    createdAt: {
+    created_at: {
         type: bd.Sequelize.DATE,
         allowNull: true
     },
-    updatedAt: {
+    updated_at: {
         type: bd.Sequelize.DATE,
         allowNull: true
     },
 }, {
     tableName: 'evento',
     freezeTableName: true,
+    underscored: true, // Converte camelCase para snake_case automaticamente
+    timestamps: true, // Habilita o gerenciamento automático dos campos createdAt e updatedAt
 });
 
 module.exports = Evento;

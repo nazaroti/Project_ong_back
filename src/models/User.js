@@ -29,7 +29,8 @@ const UserModel = bd.sequelize.define('usuarios', {
     }
 }, {
     tableName: 'usuarios', 
-    timestamps: false
+    timestamps: false,  // Desabilita o gerenciamento automático dos campos createdAt e updatedAt
+    underscored: true   // Converte automaticamente os nomes das colunas para snake_case
 });
 
 module.exports = UserModel;
