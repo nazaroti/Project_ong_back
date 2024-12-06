@@ -26,6 +26,7 @@ const ParticipantModel = bd.sequelize.define('inscrever_evento', {
 }, {
     tableName: 'inscrever_evento', 
     timestamps: false,   // Não utilizar campos createdAt e updatedAt
+    underscored: true    // Garantir que as colunas usem snake_case
 });
 
 module.exports = ParticipantModel;
