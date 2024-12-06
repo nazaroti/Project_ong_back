@@ -511,7 +511,7 @@ app.get('/api/eventos/em-analise', async (req, res) => {
 
         const eventsInReview = await EventModel.findAll({
             where: {
-                Status: 'em analise',
+                status: 'em analise',
                 [Op.or]: [
                     { data: { [Op.gt]: data } },
                     {
