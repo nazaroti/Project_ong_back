@@ -625,7 +625,6 @@ app.post("/api/getParticipants", verificarToken, async (req, res) => {
                     if (nome && sobrenome) {
                         return `${nome} ${sobrenome}`;
                     }
-                    return nome || sobrenome || null; // Retorna o nome ou sobrenome se algum estiver ausente
                 })
                 .filter(nomeCompleto => nomeCompleto !== null);
 
