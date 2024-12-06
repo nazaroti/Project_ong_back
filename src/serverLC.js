@@ -801,7 +801,8 @@ app.post("/api/procurar-evento", verificarToken, function (req, res) {
         };
     }
     EventModel.findAll({
-        where: whereCondition
+        where: whereCondition,
+        order: [['data', 'ASC']]
     }).then(function (eventReports) {
         res.json(eventReports)
     });
