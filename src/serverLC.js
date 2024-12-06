@@ -482,7 +482,7 @@ app.delete('/api/eventos', verificarToken, async (req, res) => {
         // Excluir o evento
         const deleteEventQuery = `
             DELETE FROM evento 
-            WHERE "ID_Evento" = $1`;
+            WHERE "id_evento" = $1`;
 
         await pool.query(deleteEventQuery, [eventId]);
 
