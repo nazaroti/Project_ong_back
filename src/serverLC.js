@@ -32,12 +32,12 @@ const UserModel = require("./models/User");
 
 // Definindo a associação entre os modelos
 UserModel.hasMany(ParticipantModel, {
-    foreignKey: 'ID_Usuario',
+    foreignKey: 'id_usuario',
     as: 'participants',
 });
 
 ParticipantModel.belongsTo(UserModel, {
-    foreignKey: 'ID_Usuario',
+    foreignKey: 'id_usuario',
     as: 'user',
 });
 
