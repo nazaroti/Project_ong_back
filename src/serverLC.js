@@ -312,19 +312,23 @@ app.post('/adminLogin', async (req, res) => {
 
             // Imprimir o JSON do administrador no terminal
             console.log('Administrador encontrado:', JSON.stringify(admin, null, 2));
+            
+            try {
+                // Comparação da senha
+                const match = await bcrypt.compare(password, admin.senha);
 
-            // Comparar a senha fornecida com a senha armazenada diretamente
-            if (password === admin.senha) {
-                // Gera o token JWT com o ID do administrador e papel (role)
-                const token = gerarToken(admin.id_adm); // Use admin.ID_Adm para o token
-
-                return res.status(200).send({
-                    message: 'Login de administrador bem-sucedido',
-                    token,
-                });
-            } else {
-                return res.status(401).send({ message: 'Usuário ou senha de administrador incorretos' });
+                if (match) {
+                    // Geração do token JWT
+                    const token = gerarToken(admin.id_adm); 
+                    return res.status(200).send({ message: 'Login bem-sucedido', token });
+                } else {
+                    return res.status(401).send({ message: 'Usuário ou senha incorretos' });
+                }
+            } catch (error) {
+                console.error('Erro ao comparar a senha:', error);
+                return res.status(500).send({ message: 'Erro ao processar a comparação da senha.' });
             }
+
         } else {
             return res.status(401).send({ message: 'Usuário ou senha de administrador incorretos' });
         }
