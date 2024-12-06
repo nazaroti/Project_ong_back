@@ -616,17 +616,10 @@ app.post("/api/getParticipants", verificarToken, async (req, res) => {
         });
 
         if (participants && participants.length > 0) {
-            // Extrai os nomes e sobrenomes dos participantes e concatena
+            // Extrai os nomes dos participantes
             const userNames = participants
-                .map(participant => {
-                    const nome = participant.user ? participant.user.nome : null;
-                    const sobrenome = participant.user ? participant.user.sobrenome : null;
-                    // Verifica se ambos existem e concatena
-                    if (nome && sobrenome) {
-                        return `${nome} ${sobrenome}`;
-                    }
-                })
-                .filter(nomeCompleto => nomeCompleto !== null);
+                .map(participant => participant.user ? participant.user.nome : null)
+                .filter(nome => nome !== null);
 
             console.log(userNames); // Verifica os nomes no console
             return res.json({ participants: userNames });
