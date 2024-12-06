@@ -601,6 +601,7 @@ app.post("/api/getParticipants", verificarToken, async (req, res) => {
 
         console.log("ID Evento: " + id_event);
 
+        // Verifica se o evento existe
         const participants = await ParticipantModel.findAll({
             where: {
                 id_evento: id_event
@@ -608,18 +609,19 @@ app.post("/api/getParticipants", verificarToken, async (req, res) => {
             include: [
                 {
                     model: UserModel,
-                    as: 'user',
+                    as: 'user', // Verifique se o alias está correto
                     attributes: ['nome'],
                 }
             ],
         });
 
         if (participants && participants.length > 0) {
+            // Extrai os nomes dos participantes
             const userNames = participants
                 .map(participant => participant.user ? participant.user.nome : null)
                 .filter(nome => nome !== null);
 
-                console.log(userNames)
+            console.log(userNames); // Verifica os nomes no console
             return res.json({ participants: userNames });
         } else {
             return res.json({ participants: [] });
@@ -629,6 +631,7 @@ app.post("/api/getParticipants", verificarToken, async (req, res) => {
         return res.status(500).json({ error: 'Erro ao buscar participantes.' });
     }
 });
+
 
 
 
