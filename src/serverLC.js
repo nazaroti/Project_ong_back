@@ -471,7 +471,7 @@ app.delete('/api/eventos', verificarToken, async (req, res) => {
         const checkEventQuery = `
             SELECT * 
             FROM evento 
-            WHERE "ID_Evento" = $1 AND "ID_Usuario" = $2`;
+            WHERE "id_evento" = $1 AND "id_usuario" = $2`;
 
         const checkEventResult = await pool.query(checkEventQuery, [eventId, userId]);
 
