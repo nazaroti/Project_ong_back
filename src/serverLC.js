@@ -742,6 +742,8 @@ app.post("/api/createEvent", verificarToken, async (req, res) => {
             event_responsible
         } = req.body;
 
+        const eventSlots = parseInt(req.body.event_slots, 10);
+
         const createEvents = await EventModel.create(
             {
                 nome: event_name,
@@ -749,7 +751,7 @@ app.post("/api/createEvent", verificarToken, async (req, res) => {
                 status: 'aprovado',
                 data: event_date,
                 horario: event_time,
-                num__vagas: event_slots,
+                num__vagas: eventSlots,
                 local: event_location,
                 duracao: event_duration,
                 nome_responsavel: event_responsible
