@@ -77,6 +77,28 @@ app.use(express.json());
 const port = process.env.PORT || 3000;
 const SECRET_KEY = 'sua_chave_secreta';
 
+const allowedOrigins = ['https://ong-solidariedade.vercel.app']; 
+
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+
+    // Verifica se a origem está na lista de permitidas
+    if (allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
+
+    // Métodos e cabeçalhos permitidos
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    // Tratamento para preflight requests
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
+    next();
+});
+
 
 
 // Função para gerar o token JWT
