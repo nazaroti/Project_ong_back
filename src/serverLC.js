@@ -768,7 +768,7 @@ app.post("/api/createEvent", verificarToken, async (req, res) => {
                 status: 'aprovado',
                 data: event_date,
                 horario: event_time,
-                num__vagas: eventSlots,
+                num_vagas: eventSlots,
                 local: event_location,
                 duracao: event_duration,
                 nome_responsavel: event_responsible
@@ -803,7 +803,7 @@ app.put("/api/editData", verificarToken, async (req, res) => {
                 status: event_status,
                 data: event_date,
                 horario: event_time,
-                num__vagas: event_slots,
+                num_vagas: event_slots,
                 local: event_location,
                 duracao: event_duration,
                 nome_responsavel: event_responsible
