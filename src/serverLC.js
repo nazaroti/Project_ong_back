@@ -329,14 +329,14 @@ app.post('/adminLogin', async (req, res) => {
 
             // Imprimir o JSON do administrador no terminal
             console.log('Administrador encontrado:', JSON.stringify(admin, null, 2));
-            
+
             try {
                 // Comparação da senha
                 const match = await bcrypt.compare(password, admin.senha);
 
                 if (match) {
                     // Geração do token JWT
-                    const token = gerarToken(admin.id_adm); 
+                    const token = gerarToken(admin.id_adm);
                     return res.status(200).send({ message: 'Login bem-sucedido', token });
                 } else {
                     return res.status(401).send({ message: 'Usuário ou senha incorretos' });
@@ -599,7 +599,6 @@ app.get("/api/eventos/relatorio-eventos", verificarToken, async function (req, r
         const dataLimite = new Date(dataAtual);
         dataLimite.setDate(dataAtual.getDate() - 30);
         const data = dataAtual.toLocaleDateString('en-CA');
-        const horario = dataAtual.toTimeString().slice(0, 8);
         const dataLimiteFormatada = dataLimite.toLocaleDateString('en-CA');
 
         const eventReports = await EventModel.findAll({
@@ -635,12 +634,12 @@ app.post("/api/getParticipants", verificarToken, async (req, res) => {
             include: [
                 {
                     model: UserModel,
-                    as: 'user', 
+                    as: 'user',
                     attributes: ['nome', 'sobrenome'], // Inclua sobrenome aqui
                 }
             ],
         });
-        
+
         if (participants && participants.length > 0) {
             // Extrai os nomes e sobrenomes dos participantes e concatena
             const userNames = participants
@@ -654,11 +653,11 @@ app.post("/api/getParticipants", verificarToken, async (req, res) => {
                     return nome || sobrenome || null; // Retorna o nome ou sobrenome se algum estiver ausente
                 })
                 .filter(nomeCompleto => nomeCompleto !== null);
-        
+
             console.log(userNames); // Verifica os nomes no console
             return res.json({ participants: userNames });
-        
-        
+
+
         } else {
             return res.json({ participants: [] });
         }
@@ -678,7 +677,7 @@ app.delete("/api/eventos/deletOld", verificarToken, async (req, res) => {
         // Exclui eventos mais antigos que a data limite
         const deletedRows = await EventModel.destroy({
             where: {
-                data: { [Op.lt]: dataLimiteFormatada } 
+                data: { [Op.lt]: dataLimiteFormatada }
             }
         });
 
@@ -821,8 +820,14 @@ app.put("/api/editData", verificarToken, async (req, res) => {
 
 
 app.post("/api/procurar-evento", verificarToken, function (req, res) {
+    const dataAtual = new Date();
+    const dataLimite = new Date(dataAtual);
+    dataLimite.setDate(dataAtual.getDate() - 30);
+    const dataLimiteFormatada = dataLimite.toLocaleDateString('en-CA');
 
-    let whereCondition = {};
+    let whereCondition = {
+        data: { [Op.lt]: dataLimiteFormatada } 
+    };
 
     if (req.body.opcao) {
         whereCondition.status = req.body.opcao;
@@ -830,16 +835,25 @@ app.post("/api/procurar-evento", verificarToken, function (req, res) {
 
     if (req.body.dataOpcao) {
         whereCondition.data = {
-            [Op.gte]: req.body.dataOpcao
+            ...whereCondition.data, 
+            [Op.gte]: req.body.dataOpcao 
         };
     }
+
+    // Consulta no banco de dados
     EventModel.findAll({
         where: whereCondition,
         order: [['data', 'ASC']]
-    }).then(function (eventReports) {
-        res.json(eventReports)
-    });
+    })
+        .then(function (eventReports) {
+            res.json(eventReports);
+        })
+        .catch(function (error) {
+            console.error("Erro ao buscar eventos:", error);
+            res.status(500).json({ error: "Erro ao buscar eventos" });
+        });
 });
+
 
 app.post("/api/verificar-token", verificarToken, function (req, res) {
 
