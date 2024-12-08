@@ -823,7 +823,7 @@ app.post("/api/procurar-evento", verificarToken, function (req, res) {
     const dataAtual = new Date();
     const dataLimite = new Date(dataAtual);
     dataLimite.setDate(dataAtual.getDate() - 30);
-    const dataLimiteFormatada = dataLimite.toLocaleDateString('en-CA');
+    const dataLimiteFormatada = dataLimite.toISOString().split('T')[0];
 
     let whereCondition = {
         data: { [Op.lt]: dataLimiteFormatada } 
@@ -839,6 +839,9 @@ app.post("/api/procurar-evento", verificarToken, function (req, res) {
             [Op.gte]: req.body.dataOpcao 
         };
     }
+
+    console.log("Condição WHERE:", whereCondition);
+
 
     // Consulta no banco de dados
     EventModel.findAll({
