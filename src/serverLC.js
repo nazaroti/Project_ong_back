@@ -826,7 +826,7 @@ app.post("/api/procurar-evento", verificarToken, function (req, res) {
     const dataLimiteFormatada = dataLimite.toISOString().split('T')[0];
 
     let whereCondition = {
-        data: { [Op.lt]: dataLimiteFormatada } 
+        data: { [Op.gt]: dataLimiteFormatada }
     };
 
     if (req.body.opcao) {
