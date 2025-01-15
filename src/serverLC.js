@@ -188,7 +188,7 @@ app.post('/cadastro', async (req, res) => {
 
     try {
         // Verificar se o e-mail já existe
-        const checkEmailQuery = 'SELECT * FROM usuarios WHERE email = $1';
+        const checkEmailQuery = 'SELECT * FROM Usuarios WHERE email = $1';
         const emailResult = await pool.query(checkEmailQuery, [email]);
 
         if (emailResult.rows.length > 0) {
