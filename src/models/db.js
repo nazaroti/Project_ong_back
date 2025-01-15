@@ -1,8 +1,8 @@
 const { Sequelize } = require('sequelize');
 
 // Configuração do Banco de Dados PostgreSQL com SSL
-const sequelize = new Sequelize('project_ong_banco', 'project_ong_banco_user', 'GTYrLBPK6LIvvXH66Y8FRjumnHkAcsCI', {
-  host: 'dpg-ct76dibtq21c73bjo40g-a.oregon-postgres.render.com',
+const sequelize = new Sequelize('project_ong_banco2', 'project_ong_banco2_user', 'SXyckA4le1i08TI9IxEptRAnjeyp3USw', {
+  host: 'dpg-cu3sohl6l47c73aa3lsg-a.oregon-postgres.render.com',
   dialect: 'postgres',
   port: 5432,
   dialectOptions: {
