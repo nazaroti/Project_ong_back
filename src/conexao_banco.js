@@ -1,7 +1,7 @@
 const { Pool } = require('pg');
 
 // Link de conexão com o banco de dados PostgreSQL
-const connectionUrl = 'postgresql://project_ong_banco_user:GTYrLBPK6LIvvXH66Y8FRjumnHkAcsCI@dpg-ct76dibtq21c73bjo40g-a.oregon-postgres.render.com/project_ong_banco';
+const connectionUrl = 'postgresql://project_ong_banco2_user:SXyckA4le1i08TI9IxEptRAnjeyp3USw@dpg-cu3sohl6l47c73aa3lsg-a.oregon-postgres.render.com/project_ong_banco2';
 
 // Configuração do pool com SSL habilitado
 const pool = new Pool({

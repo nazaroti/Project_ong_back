@@ -882,7 +882,7 @@ cron.schedule('0 0 * * *', async () => {
     }
 });
 
-/*app.get('/', async (req, res) => {
+app.get('/', async (req, res) => {
     
     const nome = 'Admin'
     const email = 'rosa.6579100@pucminas.br'
@@ -906,7 +906,7 @@ cron.schedule('0 0 * * *', async () => {
         res.status(500).send({ message: 'Erro ao cadastrar usuário.' });
     }
 });
-*/
+
 // #endregion
 
 // #endregion //
