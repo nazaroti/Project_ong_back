@@ -58,7 +58,7 @@ const Evento = bd.sequelize.define('evento', {
     tableName: 'evento',
     freezeTableName: true,
     underscored: true, // Converte camelCase para snake_case automaticamente
-    timestamps: true, // Habilita o gerenciamento automático dos campos createdAt e updatedAt
+    timestamps: false, // Habilita o gerenciamento automático dos campos createdAt e updatedAt
 });
 
 module.exports = Evento;
